@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🌍 Travel Chatbot Assistant</title>
+    <style>
+        body {
+            font-family: 'Georgia', serif; /* Changed font to Georgia */
+            background-color: #b0daff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .chat-container {
+            background-color: rgba(255, 255, 255, 0.8);
+            border-radius: 8px;
+            padding: 70px;
+            width: 1000px;
+            height: 800px;
+            max-width: 100%;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+            position: relative;
+            z-index: 10;
+            overflow-y: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        h1 {
+            text-align: center;
+            color: #3987a8;
+            margin-bottom: 30px;
+        }
+
+        #chatbox {
+            background-color: #fff;
+            border: 1px solid #ddd;
+            padding: 15px; /* Increased padding */
+            height: 600px;
+            overflow-y: auto;
+            margin-bottom: 50px;
+            border-radius: 5px;
+            flex-grow: 1;
+            font-size: 20px; /* Larger font size */
+            font-family: 'Georgia', serif; /* Stylish font for chat messages */
+        }
+
+        .user-msg, .bot-msg {
+            margin: 10px 0; /* More space between messages */
+            padding: 20px; /* Increased padding */
+            border-radius: 5px;
+            max-width: 90%;
+            font-size: 25px; /* Larger font for messages */
+        }
+
+        .user-msg {
+            align-self: flex-end;
+            background-color: #f1f1f1; /* Light green for user */
+            text-align: left;
+        }
+
+        .bot-msg {
+            align-self: flex-start;
+            background-color: #e0e0e0; /* Light grey for bot */
+            text-align: left;
+        }
+
+        input[type="text"] {
+            width: calc(100% - 60px);
+            padding: 15px; /* Increased padding for input field */
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin-right: 10px;
+            font-size: 20px; /* Larger font size */
+            font-family: 'Georgia', serif; /* Match the font style */
+        }
+
+        button {
+            padding: 15px;
+            background-color: #2d92bf;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 20px;
+        }
+
+        button:disabled {
+            background-color: #aaa;
+            cursor: not-allowed;
+        }
+
+        button:hover {
+            background-color: #3192ce;
+        }
+
+        /* Static travel background */
+        .background-animation {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('/static/images/back.png') no-repeat center center fixed;
+            background-size: cover;
+            z-index: -1;
+        }
+    </style>
+</head>
+<body>
+
+<div class="background-animation"></div>
+
+<div class="chat-container">
+    <h1>🌍🧳 Travel Chatbot Assistant</h1>
+    <div id="chatbox"></div>
+    <div>
+        <input type="text" id="userInput" placeholder="Type your question...">
+        <button id="sendButton">Send</button>
+    </div>
+</div>
+
+<script>
+    document.getElementById('sendButton').onclick = function() {
+        const userInput = document.getElementById('userInput').value;
+        if (userInput.trim() === "") return;
+
+        // Disable send button
+        document.getElementById('sendButton').disabled = true;
+
+        // Display user message
+        const chatbox = document.getElementById('chatbox');
+        const userMsgDiv = document.createElement('div');
+        userMsgDiv.classList.add('user-msg');
+        userMsgDiv.textContent = "You : " + userInput;
+        chatbox.appendChild(userMsgDiv);
+        document.getElementById('userInput').value = "";
+
+        // Send message to Flask backend
+        fetch("/chat", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                message: userInput,
+                context: localStorage.getItem('context') || ""
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            const botMsgDiv = document.createElement('div');
+            botMsgDiv.classList.add('bot-msg');
+            const formattedResponse = data.response.replace(/\n/g, "<br>");
+            botMsgDiv.innerHTML = "Travel Bot 🤖: " + formattedResponse;
+            chatbox.appendChild(botMsgDiv);
+            chatbox.scrollTop = chatbox.scrollHeight;
+
+            // Enable send button again after response
+            document.getElementById('sendButton').disabled = false;
+
+            // Save updated context
+            localStorage.setItem('context', data.context);
+        });
+    };
+</script>  
+
+</body>
+</html>
