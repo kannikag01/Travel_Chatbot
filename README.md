@@ -1,1 +1,1 @@
-# travel
+# travel chat bot using ollama 
